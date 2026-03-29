@@ -1,162 +1,102 @@
 # Label Ease Deployment Guide
 
-Complete deployment workflow for landing page + API.
+Complete deployment workflow using AWS S3 + CloudFront + Route53 (standard across all apps).
 
-## Development Setup
+## Architecture
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Supabase account (already set up: jwrmjxbfqdaveyoiyjpt)
+```
+label-ease.com (Route53)
+    ↓
+CloudFront CDN (caching, global distribution)
+    ↓
+S3 Bucket (static files: dist/)
+    ↓
+GitHub Actions (automatic deploys)
+```
 
-### Local Development
+## Prerequisites
+
+- AWS Account (already set up)
+- S3 Bucket for production (`prod-label-ease`)
+- S3 Bucket for staging (`staging-label-ease`)
+- CloudFront Distribution (production + staging)
+- GitHub Secrets configured
+- Route53 domain: label-ease.com
+
+## Local Development
 
 ```bash
-# Install all dependencies (monorepo)
 npm install
-
-# Start both web + backend in development mode
-npm run dev
-
-# Or start individually:
-cd web && npm run dev          # Landing page on http://localhost:5173
-cd backend && npm run dev      # API on http://localhost:3000
+npm run dev        # localhost:5173
+npm run build      # Build for production (→ dist/)
 ```
 
-### Environment Variables
+## GitHub Secrets Setup
 
-**Web (.env.local in web/ directory):**
-```bash
+Configure these in GitHub repo settings (Settings → Secrets and variables → Actions):
+
+### Environment: staging
+```
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+STAGING_S3_BUCKET=staging-label-ease
+STAGING_CLOUDFRONT_DISTRIBUTION_ID=<your-distribution-id>
 VITE_SUPABASE_URL=https://jwrmjxbfqdaveyoiyjpt.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key_here
+VITE_SUPABASE_ANON_KEY=<anon-key>
 ```
 
-**Backend (.env in backend/ directory):**
-```bash
-SUPABASE_URL=https://jwrmjxbfqdaveyoiyjpt.supabase.co
-SUPABASE_ANON_KEY=your_anon_key_here
-SUPABASE_SERVICE_KEY=your_service_key_here
-PORT=3000
+### Environment: production
+```
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+PROD_S3_BUCKET=prod-label-ease
+PROD_CLOUDFRONT_DISTRIBUTION_ID=<your-distribution-id>
+VITE_SUPABASE_URL=https://jwrmjxbfqdaveyoiyjpt.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key>
 ```
 
-## Deployment Options
+## AWS Infrastructure Setup
 
-### Option 1: Vercel (Recommended for Web)
-
-**Landing page deployment:**
-
-```bash
-# Install Vercel CLI
-npm install -g vercel
-
-# Deploy web app
-cd ~/code/labelease/web
-vercel
-
-# Configure build
-# - Build Command: npm run build
-# - Output Directory: dist
-# - Install Command: npm install
-```
-
-**Setup custom domain:**
-1. Go to Vercel project settings
-2. Add custom domain: `label-ease.com`
-3. Update DNS records (Vercel will provide)
-
-**GitHub Auto-Deploy:**
-1. Connect GitHub repository
-2. Set root directory to `web/`
-3. Deploy on push to main
-
-### Option 2: Railway or Render (For Backend API)
-
-**Backend deployment:**
+### 1. Create S3 Buckets
 
 ```bash
-# Option A: Railway
-railway link
-railway up
+# Production bucket
+aws s3 mb s3://prod-label-ease --region us-east-1
+aws s3api put-bucket-versioning --bucket prod-label-ease --versioning-configuration Status=Enabled
 
-# Option B: Render
-# Push to GitHub, connect to Render
+# Staging bucket
+aws s3 mb s3://staging-label-ease --region us-east-1
+aws s3api put-bucket-versioning --bucket staging-label-ease --versioning-configuration Status=Enabled
+
+# Block public access, configure for website hosting
+aws s3api put-bucket-policy --bucket prod-label-ease --policy file://bucket-policy.json
 ```
 
-**Environment variables:** Set on Render/Railway dashboard
+### 2. Create CloudFront Distributions
 
-### Option 3: Docker (Full Stack)
-
-**Create Dockerfile:**
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-COPY . .
-
-# Install dependencies
-RUN npm install --workspaces
-
-# Build web
-WORKDIR /app/web
-RUN npm run build
-
-# Expose API port
-EXPOSE 3000
-
-# Start backend
-WORKDIR /app/backend
-CMD ["npm", "run", "dev"]
+**For Production:**
+```bash
+aws cloudfront create-distribution --distribution-config file://prod-distribution.json
 ```
 
-## GitHub Pages (Static Landing Page)
+**For Staging:**
+```bash
+aws cloudfront create-distribution --distribution-config file://staging-distribution.json
+```
 
-To deploy **only** the landing page to GitHub Pages:
+Get the distribution IDs from output and add to GitHub Secrets.
+
+### 3. Update Route53
+
+Point label-ease.com to CloudFront:
 
 ```bash
-# From web/ directory
-npm run build
-
-# Create .github/workflows/deploy.yml in root
-
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - run: cd web && npm install && npm run build
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./web/dist
-
-# Then in repo settings:
-# - Go to Settings > Pages
-# - Source: Deploy from branch
-# - Branch: gh-pages
-# - Folder: / (root)
-```
-
-## DNS Configuration (label-ease.com)
-
-### AWS Route 53
-
-Currently registered via AWS Route 53. Update records:
-
-```bash
-# Point to GitHub Pages
 aws route53 change-resource-record-sets \
-  --hosted-zone-id <YOUR_ZONE_ID> \
-  --change-batch file://dns-update.json
+  --hosted-zone-id <ZONE_ID> \
+  --change-batch file://route53-update.json
 ```
 
-**dns-update.json:**
+**route53-update.json:**
 ```json
 {
   "Changes": [
@@ -164,76 +104,127 @@ aws route53 change-resource-record-sets \
       "Action": "UPSERT",
       "ResourceRecordSet": {
         "Name": "label-ease.com",
-        "Type": "CNAME",
-        "TTL": 300,
-        "ResourceRecords": [
-          { "Value": "jlkeiper.github.io" }
-        ]
-      }
-    },
-    {
-      "Action": "UPSERT",
-      "ResourceRecordSet": {
-        "Name": "www.label-ease.com",
-        "Type": "CNAME",
-        "TTL": 300,
-        "ResourceRecords": [
-          { "Value": "jlkeiper.github.io" }
-        ]
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2FDTNDATAQYW2",
+          "DNSName": "<your-cloudfront-domain>.cloudfront.net",
+          "EvaluateTargetHealth": false
+        }
       }
     }
   ]
 }
 ```
 
-### Or via Vercel
+## Deployment Workflows
 
-If using Vercel:
-1. Add domain in Vercel project settings
-2. Vercel provides nameserver updates
-3. Update AWS Route 53 nameservers
+### CI Pipeline
+- Triggered on: push to main/develop, PR to main/develop
+- Runs: lint, test
+- No deployment
 
-## Deployment Checklist
+### Staging Deploy
+- Triggered: Auto-deploy on push to develop
+- Deploys to: S3 staging bucket → CloudFront staging
+- Uses: GitHub environment "staging"
 
-- [ ] Install dependencies: `npm install`
-- [ ] Create .env files (web + backend)
-- [ ] Test locally: `npm run dev`
-- [ ] Test build: `npm run build`
-- [ ] Choose deployment: Vercel, Railway, Docker, etc.
-- [ ] Set up GitHub auto-deploy
-- [ ] Configure custom domain (label-ease.com)
-- [ ] Update DNS records (AWS Route 53)
-- [ ] Test landing page
-- [ ] Set up backend API endpoint
-- [ ] Configure CORS in backend
-- [ ] Add Supabase auth to web app
-- [ ] Set up email signup integration
+### Production Deploy
+- Triggered: Manual via GitHub Actions (workflow_dispatch)
+- Deploys to: S3 production bucket → CloudFront production
+- Uses: GitHub environment "production"
+- Invalidates CloudFront cache
 
-## Monitoring & Logging
+## Deployment Process
 
-**Vercel:** Built-in analytics + error tracking
-**Railway/Render:** View logs in dashboard
-**Supabase:** Monitor in console
+### Deploy to Staging
+1. Commit to `develop` branch
+2. GitHub Actions auto-triggers
+3. Builds dist/
+4. Syncs to S3 staging bucket
+5. Invalidates CloudFront cache
+6. Live at: staging-label-ease.s3.us-east-1.amazonaws.com (or via staging subdomain)
 
-## Local Testing Before Deploy
+### Deploy to Production
+1. Go to GitHub Actions
+2. Select "Deploy Production" workflow
+3. Click "Run workflow" on main branch
+4. Approves deployment
+5. Builds dist/
+6. Syncs to S3 production bucket
+7. Invalidates CloudFront cache
+8. Live at: label-ease.com (via CloudFront)
 
+## Caching Strategy
+
+**Assets** (dist/assets/*):
+- Cache-Control: `public, max-age=31536000, immutable`
+- 1-year cache (files are hashed, safe to cache long)
+
+**HTML** (index.html):
+- Cache-Control: `public, max-age=300`
+- 5-minute cache (allows quick updates)
+
+## Monitoring & Logs
+
+### GitHub Actions
+- Status: github.com/jlkeiper/labelease/actions
+- Logs: Click workflow run for details
+
+### AWS S3
+- Bucket contents: AWS Console → S3 → bucket name
+- Object metadata: Check cache-control headers
+
+### CloudFront
+- Distribution: AWS Console → CloudFront
+- Cache stats: Monitoring tab
+- Invalidations: Invalidations tab
+
+## Troubleshooting
+
+### Deploy fails with S3 access denied
+- Check AWS credentials in GitHub Secrets
+- Verify S3 bucket policy allows access
+- Check IAM permissions
+
+### Site shows old version after deploy
+- CloudFront cache invalidation may be pending
+- Check CloudFront Invalidations tab
+- Force browser cache clear: Ctrl+Shift+R
+
+### 404 errors for deep routes
+- Ensure CloudFront is configured to serve index.html for 404s
+- Check S3 error document: index.html
+
+## Local Testing
+
+Test production build locally:
 ```bash
-# Test production build locally
-cd web
 npm run build
-npm run preview
-
-# Should serve dist/ folder at http://localhost:4173
+npm run preview      # Serves dist/ on localhost:4173
 ```
 
-## Next Steps
+## Rollback
 
-1. Deploy landing page (Vercel or GitHub Pages)
-2. Deploy backend API (Railway, Render, or Docker)
-3. Connect web app to backend API
-4. Add Supabase auth + email signup
-5. Hook up CAB email collection
+If production deploy has issues:
+1. Git revert bad commit
+2. Create new deploy via GitHub Actions
+3. CloudFront invalidation happens automatically
+
+Alternative: Manually restore from S3 versioning:
+```bash
+aws s3 list-object-versions --bucket prod-label-ease
+aws s3 cp s3://prod-label-ease/index.html.previous s3://prod-label-ease/index.html
+```
+
+## Cost Optimization
+
+- **S3 Storage**: ~$0.023 per GB/month (minimal for static site)
+- **CloudFront**: ~$0.085 per GB transferred (first 10TB/month)
+- **Route53**: $0.50 per hosted zone/month
+- **Total estimated**: $5-20/month depending on traffic
+
+Total is significantly cheaper than traditional hosting.
 
 ---
 
-**Status:** Deployment guide complete. Ready for Week 1 CAB validation.
+**Status:** AWS infrastructure ready. Workflows configured. Ready for CI/CD pipeline setup.

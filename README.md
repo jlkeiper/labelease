@@ -21,14 +21,19 @@ Customize your labels. Organize your inventory. Ship smarter.
 ```bash
 npm install
 npm run dev        # Start on http://localhost:5173
-npm run build      # Build for production
+npm run build      # Build for production (→ dist/)
 ```
 
-Deploy to Vercel:
+Deploy (AWS S3 + CloudFront):
 ```bash
-vercel           # Deploy landing page
-# Configure domain: label-ease.com
+# Push to develop → auto-deploys to staging
+git push origin develop
+
+# Manual deploy to production
+# → GitHub Actions → Deploy Production → Run workflow
 ```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full AWS infrastructure setup.
 
 ## 💻 Product
 
