@@ -13,39 +13,22 @@ Customize your labels. Organize your inventory. Ship smarter.
 - ✅ Michia: 90-Day founder verdict (CONDITIONAL GO)
 - ✅ Finn: Financial model ($3.15B TAM)
 - ✅ Scout: Brand positioning + domain (label-ease.com)
-- 🔄 Landing page: Live (Lovable prototype integrated)
+- 🔄 Landing page: Live (Lovable prototype)
 - 📋 Next: CAB recruitment (target 3+ pre-commits → MVP build)
-
-## 🏗️ Monorepo Structure
-
-```
-labelease/
-├── web/                    # Landing page (React/Vite/Tailwind)
-│   ├── src/              # Components, pages, styles
-│   └── package.json
-├── backend/              # Node.js API (Express/Supabase)
-│   ├── src/index.js     # Entry point
-│   └── package.json
-├── docs/                 # Documentation
-├── ROADMAP.md           # 8-week development plan
-├── DEPLOYMENT.md        # Deployment guide
-└── package.json         # Monorepo root
-```
 
 ## 🚀 Quick Start
 
-### Development
 ```bash
-npm install                # Install all dependencies
-npm run dev              # Start web + backend locally
+npm install
+npm run dev        # Start on http://localhost:5173
+npm run build      # Build for production
 ```
 
-### Deploy
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
-- Vercel (landing page)
-- Railway/Render (API)
-- GitHub Pages (static site)
-- Docker (full stack)
+Deploy to Vercel:
+```bash
+vercel           # Deploy landing page
+# Configure domain: label-ease.com
+```
 
 ## 💻 Product
 
@@ -66,14 +49,14 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
 
 ## 🛠️ Tech Stack
 
-| Layer | Tech | Purpose |
-|-------|------|---------|
-| Frontend | React 18 + TypeScript + Tailwind | Landing page + app UI |
-| Backend | Node.js + Express | QR gen, PDF export, API |
-| Database | Supabase (PostgreSQL) | Users, labels, inventory |
-| PDF | pdfkit | Avery label generation |
-| QR | qrcode | Code generation + embedding |
-| Mobile | React Native (future) | iOS/Android scanner |
+| Layer | Tech |
+|-------|------|
+| Frontend | React 18 + TypeScript + Tailwind + Vite |
+| UI Components | shadcn/ui + Radix |
+| Database | Supabase (PostgreSQL) |
+| Backend | Node.js + Express (separate, TBD) |
+| PDF | pdfkit (Avery label generation) |
+| QR | qrcode (code generation) |
 
 ## 👥 Team
 
