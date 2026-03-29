@@ -4,53 +4,99 @@
 
 Customize your labels. Organize your inventory. Ship smarter.
 
-## Product
+[Landing Page](https://label-ease.com) • [GitHub](https://github.com/jlkeiper/labelease) • [Research Docs](./docs/DECISIONS.md)
 
-- 🏷️ **Custom label designer** — Pick Avery templates, customize text/colors
-- 📱 **Mobile QR scanner** — Scan labels to update inventory in real-time
-- 📦 **Inventory tracking** — Simple, fast organization for small businesses
-- 🎨 **Brand integration** — Print labels with your branding
+## 📊 Project Status
 
-## Status
+🚀 **Week 1: CAB Recruitment & Landing Page**
+- ✅ Forge: MVP architecture + tech spec
+- ✅ Michia: 90-Day founder verdict (CONDITIONAL GO)
+- ✅ Finn: Financial model ($3.15B TAM)
+- ✅ Scout: Brand positioning + domain (label-ease.com)
+- 🔄 Landing page: Live (Lovable prototype integrated)
+- 📋 Next: CAB recruitment (target 3+ pre-commits → MVP build)
 
-🚀 **Full Press Sprint** (Mar 29 - Apr 26, 2026)
-- Forge: MVP architecture + tech spec ✅
-- Michia: 90-Day founder evaluation (CONDITIONAL GO) ✅
-- Finn: Unit economics + pricing ($24-64/mo) ✅
-- Scout: Domain (labelease.com) + branding ✅
+## 🏗️ Monorepo Structure
 
-**Next**: CAB recruitment + prototype validation (Weeks 1-4)
+```
+labelease/
+├── web/                    # Landing page (React/Vite/Tailwind)
+│   ├── src/              # Components, pages, styles
+│   └── package.json
+├── backend/              # Node.js API (Express/Supabase)
+│   ├── src/index.js     # Entry point
+│   └── package.json
+├── docs/                 # Documentation
+├── ROADMAP.md           # 8-week development plan
+├── DEPLOYMENT.md        # Deployment guide
+└── package.json         # Monorepo root
+```
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **Frontend**: React 18 + TypeScript + Tailwind
-- **Backend**: Node.js + Express + Supabase
-- **Mobile**: React Native (Expo)
-- **PDF**: pdfkit (Avery label generation)
-- **QR**: qrcode.react + qrcode (Node)
+### Development
+```bash
+npm install                # Install all dependencies
+npm run dev              # Start web + backend locally
+```
 
-## Key Metrics (Target)
+### Deploy
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for:
+- Vercel (landing page)
+- Railway/Render (API)
+- GitHub Pages (static site)
+- Docker (full stack)
 
-- **Break-even**: Month 12 at $250K seed
-- **Unit economics**: 7.4x LTV:CAC, 94.7% gross margin
-- **Pricing**: $24 Pro / $64 Pro+ / $0.22/label print
-- **Year 3 valuation**: $17.5M+
+## 💻 Product
 
-## Team
+- 🏷️ **Custom Label Designer** — Pick Avery templates, customize text/colors
+- 📱 **Mobile QR Scanner** — Scan labels, track inventory in real-time
+- 📦 **Inventory Management** — Simple, organized storage + fulfillment
+- 🎨 **Brand Integration** — Print with your branding
 
-- 🔧 **Forge** — Architecture, full-stack dev
-- 🎯 **Michia** — Business evaluation, strategy
-- 💰 **Finn** — Financial modeling
-- 🔍 **Scout** — Brand, domain, go-to-market
-- 👤 **Jeremy** — Product direction, CAB recruitment
+## 💰 Key Metrics
 
-## Quick Links
+| Metric | Value |
+|--------|-------|
+| TAM | $3.15B-$3.45B |
+| Pricing | $24 Pro / $64 Pro+ / $0.22/label |
+| Unit Economics | 7.4x LTV:CAC, 94.7% margin |
+| Break-even | Month 12 @ $250K seed |
+| Year 3 Valuation | $17.5M+ |
 
-- [Financial Analysis](./docs/financial-analysis.md)
-- [Tech Spec](./docs/tech-spec.md)
-- [Brand Guidelines](./docs/branding.md)
-- [8-Week Roadmap](./docs/roadmap.md)
+## 🛠️ Tech Stack
+
+| Layer | Tech | Purpose |
+|-------|------|---------|
+| Frontend | React 18 + TypeScript + Tailwind | Landing page + app UI |
+| Backend | Node.js + Express | QR gen, PDF export, API |
+| Database | Supabase (PostgreSQL) | Users, labels, inventory |
+| PDF | pdfkit | Avery label generation |
+| QR | qrcode | Code generation + embedding |
+| Mobile | React Native (future) | iOS/Android scanner |
+
+## 👥 Team
+
+- 🔧 **Forge** — Full-stack architecture, MVP build
+- 🎯 **Michia** — Business strategy, 90-Day evaluation
+- 💰 **Finn** — Financial modeling, pricing
+- 🔍 **Scout** — Brand positioning, go-to-market
+- 👤 **Jeremy** — Product, CAB recruitment
+
+## 📚 Documentation
+
+- [DECISIONS.md](./docs/DECISIONS.md) — All team recommendations
+- [ROADMAP.md](./ROADMAP.md) — 8-week development plan
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — How to deploy
+
+## 🎯 This Week's Goals (CAB Validation)
+
+- ✅ Landing page live
+- 📋 Find 5 Etsy sellers for CAB
+- 🎨 Present Figma mockups
+- 💬 Test pricing ($24/$49/$99)
+- 🔔 **Gate**: 3+ pre-commits → MVP build
 
 ---
 
-**Let's build something great.**
+**Building a better way to organize inventory. One QR label at a time.**
